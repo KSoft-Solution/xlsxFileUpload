@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <title>File Upload</title>
+  </head>
+  <body>
+    <style>
+      h1 {
+        color: blue;
+        text-transform: uppercase;
+        text-align: center;
+        border-bottom: 2px solid red;
+      }
+      .file-input-wrapper {
+        height: 30px;
+        margin: 2px;
+        overflow: hidden;
+        position: relative;
+        width: 118px;
+        background-color: #fff;
+        cursor: pointer;
+      }
+
+      .file-input-wrapper > input[type="file"] {
+        font-size: 40px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .file-input-wrapper > .btn-file-input {
+        background-color: #494949;
+        border-radius: 4px;
+        color: #fff;
+        display: inline-block;
+        height: 34px;
+        margin: 0 0 0 -1px;
+        padding-left: 0;
+        width: 121px;
+        cursor: pointer;
+      }
+      table {
+        font-family: Arial, Helvetica, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      table td,
+      table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+
+      table tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      table tr:hover {
+        background-color: #ddd;
+      }
+
+      table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #04aa6d;
+        color: white;
+      }
+      .form {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+      }
+      .submit-btn {
+        background-color: #494949;
+        border-radius: 4px;
+        color: #fff;
+        display: inline-block;
+        height: 34px;
+        margin: 0 0 0 -1px;
+        padding-left: 0;
+        width: 121px;
+        cursor: pointer;
+      }
+    </style>
+    <h1>Excel file upload and read using python</h1>
+    <form method="post" class="form">
+      <div class="file-input-wrapper">
+        <button class="btn-file-input">SELECT FILES</button>
+        <input type="file" name="file" id="file" accept=".xlsx,.xlx" />
+      </div>
+      <div>
+        <input type="submit" value="submit" class="submit-btn" />
+      </div>
+    </form>
+
+    <script>
+      const form = document.querySelector("form");
+      var _table_ = document.createElement("table"),
+        _tr_ = document.createElement("tr"),
+        _th_ = document.createElement("th"),
+        _td_ = document.createElement("td");
+
+      function buildHtmlTable(arr) {
+        var table = _table_.cloneNode(false),
+          columns = addAllColumnHeaders(arr, table);
+        for (var i = 0, maxi = arr.length; i < maxi; ++i) {
+          var tr = _tr_.cloneNode(false);
+          for (var j = 0, maxj = columns.length; j < maxj; ++j) {
+            var td = _td_.cloneNode(false);
+            cellValue = arr[i][columns[j]];
+            td.appendChild(document.createTextNode(arr[i][columns[j]] || ""));
+            tr.appendChild(td);
+          }
+          table.appendChild(tr);
+        }
+        return table;
+      }
+
+      // Adds a header row to the table and returns the set of columns.
+      // Need to do union of keys from all records as some records may not contain
+      // all records
+      function addAllColumnHeaders(arr, table) {
+        var columnSet = [],
+          tr = _tr_.cloneNode(false);
+        for (var i = 0, l = arr.length; i < l; i++) {
+          for (var key in arr[i]) {
+            if (arr[i].hasOwnProperty(key) && columnSet.indexOf(key) === -1) {
+              columnSet.push(key);
+              var th = _th_.cloneNode(false);
+              th.appendChild(document.createTextNode(key));
+              tr.appendChild(th);
+            }
+          }
+        }
+        table.appendChild(tr);
+        return columnSet;
+      }
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        axios
+          .post("/uploadfile", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
+          .then((res) => {
+            if (res.data && res.status === 200)
+              document.body.appendChild(buildHtmlTable(res?.data?.data));
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+    </script>
+  </body>
+</html>
